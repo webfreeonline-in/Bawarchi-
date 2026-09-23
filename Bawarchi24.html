@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bawarchi 24 | Instant Home Cook & Chef Booking</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Phosphor Icons CDN -->
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            bg: '#FAF7F2',       // Warm organic cream background
+                            surface: '#FFFFFF',  // Pure crisp white card surface
+                            dark: '#1C1917',     // Deep stone charcoal text
+                            accent: '#C25E00',   // Warm royal terracotta/amber accent
+                            accentHover: '#A34E00',
+                            gold: '#D97706',     // Culinary gold accent
+                            goldLight: '#FEF3C7',
+                            sage: '#2C5545',     // Trust green badge
+                            sageLight: '#E8F5E9',
+                            muted: '#78716C'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 30px -10px rgba(28, 25, 23, 0.05)',
+                        'float': '0 20px 40px -15px rgba(194, 94, 0, 0.15)',
+                        'modal': '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html, body {
+            height: 100%;
+            background-color: #FAF7F2;
+            color: #1C1917;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+
+        /* Fixed Mobile Framing wrapper without double scrollbars */
+        .app-viewport {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #FAF7F2;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* View transition animations */
+        .page-view {
+            display: none;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+        }
+        .page-view.active-view {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Radio & Pill Active States */
+        .chip-option input:checked + div {
+            border-color: #C25E00;
+            background-color: #FFF7ED;
+            color: #C25E00;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(194, 94, 0, 0.08);
+        }
+
+        /* Payment Tab Active */
+        .pay-tab-btn.active {
+            border-color: #C25E00;
+            background-color: #FFF7ED;
+            color: #C25E00;
+            font-weight: 700;
+        }
+
+        /* Custom Toast Notification */
+        #app-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #1C1917;
+            color: #FAF7F2;
+            padding: 12px 20px;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 100;
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+            pointer-events: none;
+            max-width: 90%;
+            white-space: nowrap;
+        }
+        #app-toast.toast-show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Pulse aura for emergency CTA */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.97); opacity: 0.9; }
+            50% { transform: scale(1.03); opacity: 0.4; }
+            100% { transform: scale(0.97); opacity: 0.9; }
+        }
+        .pulse-effect {
+            animation: pulse-ring 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="selection:bg-brand-accent selection:text-white">
+
+    <!-- Toast Popup Notification -->
+    <div id="app-toast" class="flex items-center gap-2">
+        <i id="toast-icon" class="ph-fill ph-check-circle text-brand-gold text-lg"></i>
+        <span id="toast-msg">Action completed</span>
+    </div>
+
+    <!-- MAIN APPLICATION WRAPPER -->
+    <div class="app-viewport">
+
+        <!-- GLOBAL HEADER BAR -->
+        <header id="global-header" class="sticky top-0 z-40 bg-brand-bg/95 backdrop-blur-md border-b border-stone-200/80 px-4 py-3 flex items-center justify-between">
+            <!-- Brand Logo & Cloche Mark -->
+            <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchView('splash')">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-accent to-amber-700 flex items-center justify-center shadow-md text-white p-1.5">
+                    <!-- Professional Cloche & Flame Badge -->
+                    <svg viewBox="0 0 64 64" fill="none" class="w-full h-full stroke-current" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 44C12 26.3269 26.3269 16 44 16C44 16 52 24 52 44H12Z" fill="none" stroke="currentColor"/>
+                        <circle cx="32" cy="12" r="4" fill="currentColor"/>
+                        <path d="M8 48H56" stroke="currentColor"/>
+                        <path d="M26 34L32 28V38" stroke="#FEF3C7" stroke-width="3"/>
+                        <path d="M36 28H42V33H36V38H42" stroke="#FEF3C7" stroke-width="3"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1">
+                        <span class="font-serif font-bold text-lg tracking-tight text-brand-dark">BAWARCHI</span>
+                        <span class="bg-brand-accent text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded">24</span>
+                    </div>
+                    <p class="text-[10px] text-brand-muted font-medium -mt-1">Apna cook. Jab chahiye.</p>
+                </div>
+            </div>
+
+            <!-- Header Controls: Currency & Dual Role Switcher -->
+            <div class="flex items-center gap-2">
+                <!-- Currency Toggle Button -->
+                <button onclick="toggleCurrency()" class="px-2.5 py-1 text-xs font-semibold bg-white hover:bg-stone-100 text-stone-700 rounded-full border border-stone-200 shadow-sm transition-colors flex items-center gap-1">
+                    <span id="curr-symbol">₹</span>
+                    <span id="curr-code">INR</span>
+                </button>
+
+                <!-- Dual Role Switcher Button -->
+                <button id="role-toggle-btn" onclick="toggleRoleModal()" class="px-3 py-1.5 text-xs font-bold bg-brand-sage/10 text-brand-sage border border-brand-sage/20 rounded-full hover:bg-brand-sage/20 transition-all flex items-center gap-1">
+                    <i id="role-icon" class="ph ph-user-gear text-sm"></i>
+                    <span id="role-label">Partner View</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- VIEW 1: OPENING SCREEN (SPLASH & QUICK BOOKING) -->
+        <main id="view-splash" class="page-view active-view flex-1 p-5 pb-24 space-y-5">
+            <!-- Hero Banner (Warm Cream & Terracotta Luxe) -->
+            <div class="bg-gradient-to-br from-amber-900 via-stone-900 to-amber-950 text-white rounded-3xl p-6 shadow-soft relative overflow-hidden">
+                <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-brand-accent/30 rounded-full blur-2xl"></div>
+                <div class="relative z-10 space-y-3">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[11px] text-amber-300 font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>140+ Verified Cooks available in Pune</span>
+                    </div>
+
+                    <h1 class="font-serif text-3xl font-bold leading-tight">
+                        Apna cook.<br>
+                        <span class="text-brand-gold italic font-normal">Jab chahiye.</span>
+                    </h1>
+
+                    <p class="text-xs text-stone-300 font-light leading-relaxed">
+                        Book a trusted home cook or private party chef in under 60 seconds.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Location Selector Box -->
+            <div class="bg-white rounded-2xl p-3.5 border border-stone-200 shadow-sm flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 text-brand-accent flex items-center justify-center flex-shrink-0 text-xl font-bold">
+                    📍
+                </div>
+                <div class="flex-1">
+                    <p class="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Your Location</p>
+                    <select id="user-location-select" onchange="updateLocation(this.value)" class="bg-transparent text-brand-dark font-bold text-sm w-full outline-none cursor-pointer">
+                        <option value="Kothrud, Pune">Kothrud, Pune, MH</option>
+                        <option value="Bandra West, Mumbai">Bandra West, Mumbai, MH</option>
+                        <option value="Indiranagar, Bangalore">Indiranagar, Bangalore, KA</option>
+                        <option value="Vasant Kunj, Delhi">Vasant Kunj, New Delhi</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Three Main Core Service Options -->
+            <div class="space-y-2.5">
+                <p class="text-xs font-bold text-stone-500 uppercase tracking-wider">What do you need today?</p>
+
+                <!-- Option 1: Book a Cook -->
+                <button onclick="startWizard('onetime')" class="w-full bg-gradient-to-r from-brand-accent to-amber-700 hover:from-amber-700 hover:to-brand-accent text-white p-4 rounded-2xl text-left transition-all shadow-float flex items-center justify-between group">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center text-2xl">🍳</div>
+                        <div>
+                            <h3 class="font-bold text-base">Book a Cook</h3>
+                            <p class="text-xs text-amber-100/90 font-light">For today or single meal one-time visit</p>
+                        </div>
+                    </div>
+                    <i class="ph ph-caret-right text-xl text-amber-200 group-hover:translate-x-1 transition-transform"></i>
+                </button>
+
+                <!-- Option 2: Regular Cook -->
+                <button onclick="startWizard('regular')" class="w-full bg-white hover:bg-stone-50 border border-stone-200 p-4 rounded-2xl text-left transition-all shadow-sm flex items-center justify-between group">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-2xl">🏠</div>
+                        <div>
+                            <h3 class="font-bold text-base text-brand-dark">Regular Cook</h3>
+                            <p class="text-xs text-stone-500 font-light">Daily, weekly or monthly cook subscription</p>
+                        </div>
+                    </div>
+                    <i class="ph ph-caret-right text-xl text-stone-400 group-hover:translate-x-1 transition-transform"></i>
+                </button>
+
+                <!-- Option 3: Private Chef -->
+                <button onclick="startWizard('chef')" class="w-full bg-white hover:bg-stone-50 border border-stone-200 p-4 rounded-2xl text-left transition-all shadow-sm flex items-center justify-between group">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-2xl">👨‍🍳</div>
+                        <div>
+                            <h3 class="font-bold text-base text-brand-dark">Private Chef</h3>
+                            <p class="text-xs text-stone-500 font-light">For house parties, birthdays & special occasions</p>
+                        </div>
+                    </div>
+                    <i class="ph ph-caret-right text-xl text-stone-400 group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </div>
+
+            <!-- Emergency Urgent Cook Card -->
+            <div class="p-4 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl pulse-effect">🚨</span>
+                    <div>
+                        <p class="text-xs font-bold text-red-900">Need a cook urgently?</p>
+                        <p class="text-[11px] text-red-700">Dispatch available near you in 45 mins</p>
+                    </div>
+                </div>
+                <button onclick="triggerEmergencyBooking()" class="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md transition-all">
+                    BOOK NOW
+                </button>
+            </div>
+
+            <!-- Quick Direct Navigation Button -->
+            <button onclick="switchView('home')" class="w-full bg-stone-900 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-black transition-colors text-center shadow-md">
+                Explore Main Dashboard & Cuisines →
+            </button>
+        </main>
+
+        <!-- VIEW 2: HOME DASHBOARD -->
+        <main id="view-home" class="page-view flex-1 p-5 pb-24 space-y-6">
+            <!-- Greeting Header -->
+            <div class="bg-gradient-to-br from-stone-900 to-stone-800 text-white rounded-3xl p-5 shadow-soft space-y-3 relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs text-stone-400 font-medium">Good morning 👋</span>
+                        <h2 class="text-xl font-serif font-bold text-stone-100">What are you cooking today?</h2>
+                    </div>
+                    <span class="text-3xl">🍛</span>
+                </div>
+
+                <div class="flex items-center gap-1.5 text-xs text-amber-300 bg-white/10 px-3 py-1.5 rounded-full w-fit">
+                    <i class="ph-fill ph-map-pin"></i>
+                    <span id="home-location-display">Kothrud, Pune</span>
+                </div>
+
+                <!-- Main CTA Button -->
+                <button onclick="switchView('wizard')" class="w-full mt-2 bg-brand-accent hover:bg-brand-accentHover text-white font-bold py-3.5 px-4 rounded-xl shadow-float transition-all flex items-center justify-center gap-2 group">
+                    <span>BOOK A COOK NOW</span>
+                    <i class="ph ph-arrow-right text-lg group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </div>
+
+            <!-- Quick Day Tabs -->
+            <div class="space-y-2">
+                <p class="text-xs font-bold text-stone-500 uppercase tracking-wider">When do you need service?</p>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="selectQuickDay('Today')" class="quick-day-btn active py-2.5 px-3 rounded-xl border border-brand-accent bg-amber-50 text-brand-accent font-bold text-xs text-center shadow-sm">
+                        Today
+                    </button>
+                    <button onclick="selectQuickDay('Tomorrow')" class="quick-day-btn py-2.5 px-3 rounded-xl border border-stone-200 bg-white text-stone-700 font-medium text-xs text-center hover:border-stone-300">
+                        Tomorrow
+                    </button>
+                    <button onclick="selectQuickDay('This Week')" class="quick-day-btn py-2.5 px-3 rounded-xl border border-stone-200 bg-white text-stone-700 font-medium text-xs text-center hover:border-stone-300">
+                        This Week
+                    </button>
+                </div>
+            </div>
+
+            <!-- Popular Cuisines Grid -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-serif font-bold text-lg text-brand-dark">Popular Choices</h3>
+                    <button onclick="switchView('wizard')" class="text-xs font-bold text-brand-accent hover:underline">View All</button>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div onclick="quickFilterCuisine('North Indian')" class="bg-white p-3 rounded-2xl border border-stone-200 shadow-sm text-center cursor-pointer hover:border-brand-accent transition-all group">
+                        <div class="w-12 h-12 rounded-full bg-amber-50 text-2xl flex items-center justify-center mx-auto mb-2 group-hover:scale-105 transition-transform">🍛</div>
+                        <p class="text-xs font-bold text-stone-800">North Indian</p>
+                        <p class="text-[10px] text-stone-400 mt-0.5">Roti, Dal, Paneer</p>
+                    </div>
+
+                    <div onclick="quickFilterCuisine('Maharashtrian')" class="bg-white p-3 rounded-2xl border border-stone-200 shadow-sm text-center cursor-pointer hover:border-brand-accent transition-all group">
+                        <div class="w-12 h-12 rounded-full bg-orange-50 text-2xl flex items-center justify-center mx-auto mb-2 group-hover:scale-105 transition-transform">🥘</div>
+                        <p class="text-xs font-bold text-stone-800">Maharashtrian</p>
+                        <p class="text-[10px] text-stone-400 mt-0.5">Puran Poli, Pithla</p>
+                    </div>
+
+                    <div onclick="quickFilterCuisine('Chinese')" class="bg-white p-3 rounded-2xl border border-stone-200 shadow-sm text-center cursor-pointer hover:border-brand-accent transition-all group">
+                        <div class="w-12 h-12 rounded-full bg-red-50 text-2xl flex items-center justify-center mx-auto mb-2 group-hover:scale-105 transition-transform">🍜</div>
+                        <p class="text-xs font-bold text-stone-800">Chinese</p>
+                        <p class="text-[10px] text-stone-400 mt-0.5">Noodles, Manchurian</p>
+                    </div>
+
+                    <div onclick="quickFilterCuisine('Healthy')" class="bg-white p-3 rounded-2xl border border-stone-200 shadow-sm text-center cursor-pointer hover:border-brand-accent transition-all group">
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-2xl flex items-center justify-center mx-auto mb-2 group-hover:scale-105 transition-transform">🥗</div>
+                        <p class="text-xs font-bold text-stone-800">Healthy / Salads</p>
+                        <p class="text-[10px] text-stone-400 mt-0.5">Low Oil, Keto</p>
+                    </div>
+
+                    <div onclick="quickFilterCuisine('South Indian')" class="bg-white p-3 rounded-2xl border border-stone-200 shadow-sm text-center cursor-pointer hover:border-brand-accent transition-all group">
+                        <div class="w-12 h-12 rounded-full bg-yellow-50 text-2xl flex items-center justify-center mx-auto mb-2 group-hover:scale-105 transition-transform">🌶️</div>
+                        <p class="text-xs font-bold text-stone-800">South Indian</p>
+                        <p class="text-[10px] text-stone-400 mt-0.5">Dosa, Sambar</p>
+                    </div>
+
+                    <div onclick="quickFilterCuisine('Jain')" class="bg-white p-3 rounded-2xl border border-stone-200 shadow-sm text-center cursor-pointer hover:border-brand-accent transition-all group">
+                        <div class="w-12 h-12 rounded-full bg-purple-50 text-2xl flex items-center justify-center mx-auto mb-2 group-hover:scale-105 transition-transform">🍲</div>
+                        <p class="text-xs font-bold text-stone-800">Jain Special</p>
+                        <p class="text-[10px] text-stone-400 mt-0.5">No Onion / Garlic</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Urban Company Style Trust Banner -->
+            <div class="bg-brand-sageLight border border-emerald-200 rounded-2xl p-4 flex items-center gap-3.5">
+                <div class="w-10 h-10 rounded-full bg-brand-sage text-white flex items-center justify-center flex-shrink-0 text-xl font-bold">
+                    ✓
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm text-brand-dark">Urban-Company Style Verification</h4>
+                    <p class="text-xs text-stone-600">Police background verified, Aadhaar checked & culinary taste tested cooks.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- VIEW 3: 5-STEP BOOKING FLOW -->
+        <main id="view-wizard" class="page-view flex-1 p-5 pb-24 space-y-6">
+            <!-- Progress Tracker -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center text-xs font-bold text-stone-500">
+                    <span id="wizard-step-label">STEP 1 OF 5</span>
+                    <span id="wizard-step-title" class="text-brand-accent">When do you need a cook?</span>
+                </div>
+                <div class="w-full h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                    <div id="wizard-progress-bar" class="h-full bg-brand-accent transition-all duration-300" style="width: 20%;"></div>
+                </div>
+            </div>
+
+            <form id="booking-wizard-form" onsubmit="event.preventDefault();" class="space-y-6">
+                <!-- STEP 1: DATE -->
+                <div id="wizard-step-1" class="wizard-step-content space-y-4">
+                    <h2 class="font-serif text-xl font-bold text-brand-dark">When do you need a cook?</h2>
+                    <div class="grid grid-cols-1 gap-2.5">
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_date" value="Today" checked class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-4 rounded-xl border border-stone-200 bg-white flex justify-between items-center text-sm font-medium">
+                                <span>Today</span>
+                                <span class="text-xs text-stone-400">Immediate dispatch</span>
+                            </div>
+                        </label>
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_date" value="Tomorrow" class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-4 rounded-xl border border-stone-200 bg-white flex justify-between items-center text-sm font-medium">
+                                <span>Tomorrow</span>
+                                <span class="text-xs text-stone-400">Advance booking</span>
+                            </div>
+                        </label>
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_date" value="Sunday, 20 Sep" class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-4 rounded-xl border border-stone-200 bg-white flex justify-between items-center text-sm font-medium">
+                                <span>Sunday, 20 September (Weekend Special)</span>
+                                <span class="text-xs text-stone-400">Popular</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- STEP 2: TIME -->
+                <div id="wizard-step-2" class="wizard-step-content hidden space-y-4">
+                    <h2 class="font-serif text-xl font-bold text-brand-dark">What time slot?</h2>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_time" value="7:00 AM" checked class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-3.5 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                🌅 7:00 AM (Breakfast)
+                            </div>
+                        </label>
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_time" value="10:00 AM" class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-3.5 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                ☀️ 10:00 AM (Brunch)
+                            </div>
+                        </label>
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_time" value="1:00 PM" class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-3.5 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                🍛 1:00 PM (Lunch)
+                            </div>
+                        </label>
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_time" value="7:00 PM" class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-3.5 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                🌙 7:00 PM (Dinner)
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- STEP 3: PEOPLE -->
+                <div id="wizard-step-3" class="wizard-step-content hidden space-y-4">
+                    <h2 class="font-serif text-xl font-bold text-brand-dark">How many people to feed?</h2>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_people" value="1-2 people" class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-4 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                👤 1–2 People
+                            </div>
+                        </label>
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_people" value="3-4 people" checked class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-4 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                👨‍👩‍👧 3–4 People
+                            </div>
+                        </label>
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_people" value="5-6 people" class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-4 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                👨‍👩‍👧‍👦 5–6 People
+                            </div>
+                        </label>
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_people" value="7+ people" class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-4 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                🎉 7+ People
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- STEP 4: CUISINE -->
+                <div id="wizard-step-4" class="wizard-step-content hidden space-y-4">
+                    <h2 class="font-serif text-xl font-bold text-brand-dark">What kind of food?</h2>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_cuisine" value="Maharashtrian" checked class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-3.5 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                🥘 Maharashtrian
+                            </div>
+                        </label>
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_cuisine" value="North Indian" class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-3.5 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                🍛 North Indian
+                            </div>
+                        </label>
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_cuisine" value="South Indian" class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-3.5 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                🌶️ South Indian
+                            </div>
+                        </label>
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_cuisine" value="Chinese" class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-3.5 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                🍜 Chinese
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- STEP 5: DURATION -->
+                <div id="wizard-step-5" class="wizard-step-content hidden space-y-4">
+                    <h2 class="font-serif text-xl font-bold text-brand-dark">How long do you need the cook?</h2>
+                    <div class="grid grid-cols-3 gap-2.5">
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_duration" value="2 hours" class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-3.5 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                2 Hours
+                            </div>
+                        </label>
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_duration" value="3 hours" checked class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-3.5 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                3 Hours
+                            </div>
+                        </label>
+                        <label class="chip-option cursor-pointer">
+                            <input type="radio" name="w_duration" value="4 hours" class="hidden" onchange="updateWizardSummary()">
+                            <div class="p-3.5 rounded-xl border border-stone-200 bg-white text-center text-sm font-medium">
+                                4 Hours
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Live Summary Pill -->
+                    <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs space-y-1">
+                        <p class="font-bold text-stone-800">Your Selection:</p>
+                        <p class="text-stone-600" id="wizard-summary-text">Today • 7:00 PM • 3-4 people • Maharashtrian • 3 hours</p>
+                    </div>
+                </div>
+
+                <!-- Wizard Navigation Buttons -->
+                <div class="flex items-center gap-3 pt-2">
+                    <button id="wizard-prev-btn" type="button" onclick="prevWizardStep()" class="hidden w-1/3 py-3.5 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-xs rounded-xl transition-colors">
+                        Back
+                    </button>
+                    <button id="wizard-next-btn" type="button" onclick="nextWizardStep()" class="flex-1 py-3.5 bg-brand-accent hover:bg-brand-accentHover text-white font-bold text-sm rounded-xl shadow-float transition-colors text-center">
+                        Next Step →
+                    </button>
+                </div>
+            </form>
+        </main>
+
+        <!-- VIEW 4: RESULTS SCREEN -->
+        <main id="view-results" class="page-view flex-1 p-5 pb-24 space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="font-serif text-2xl font-bold text-brand-dark">Available Bawarchis</h2>
+                    <p id="results-count-subtitle" class="text-xs text-stone-500 font-medium">4 cooks near Kothrud</p>
+                </div>
+                <button onclick="switchView('wizard')" class="text-xs font-bold text-brand-accent bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
+                    Edit Filters
+                </button>
+            </div>
+
+            <!-- Filter Pills -->
+            <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar py-1">
+                <button onclick="filterCooks('all')" class="filter-pill active whitespace-nowrap text-xs font-bold px-3 py-1.5 rounded-full bg-brand-dark text-white">All Cooks</button>
+                <button onclick="filterCooks('top-rated')" class="filter-pill whitespace-nowrap text-xs font-medium px-3 py-1.5 rounded-full bg-white text-stone-600 border border-stone-200">⭐ Rating 4.8+</button>
+                <button onclick="filterCooks('nearest')" class="filter-pill whitespace-nowrap text-xs font-medium px-3 py-1.5 rounded-full bg-white text-stone-600 border border-stone-200">📍 Near (&lt; 2 km)</button>
+                <button onclick="filterCooks('veg')" class="filter-pill whitespace-nowrap text-xs font-medium px-3 py-1.5 rounded-full bg-white text-stone-600 border border-stone-200">🥗 Pure Veg</button>
+            </div>
+
+            <!-- Dynamic Cook Cards Container -->
+            <div id="cook-results-list" class="space-y-4">
+                <!-- JS will populate cards here -->
+            </div>
+        </main>
+
+        <!-- VIEW 5: COOK PROFILE PAGE -->
+        <main id="view-profile" class="page-view flex-1 p-0 pb-28 space-y-0 bg-white">
+            <!-- Profile Hero Image -->
+            <div class="relative h-60 bg-stone-900">
+                <img id="profile-hero-img" src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80" alt="Cook profile" class="w-full h-full object-cover opacity-90">
+                <div class="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/30"></div>
+
+                <button onclick="switchView('results')" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-black/50 backdrop-blur-md text-white flex items-center justify-center">
+                    <i class="ph ph-arrow-left text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Profile Info Body -->
+            <div class="px-5 relative z-10 space-y-5 -mt-8">
+                <!-- Cook Main Card -->
+                <div class="bg-white rounded-3xl p-5 shadow-soft border border-stone-200 space-y-3">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h1 id="profile-name" class="font-serif text-2xl font-bold text-brand-dark">Priya K.</h1>
+                                <span class="bg-emerald-50 text-emerald-800 font-extrabold text-[10px] px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                                    <i class="ph-fill ph-check-circle"></i> Verified
+                                </span>
+                            </div>
+                            <p id="profile-cuisines" class="text-xs text-stone-500 font-medium mt-0.5">Maharashtrian • North Indian</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="flex items-center gap-1 text-amber-500 font-bold text-lg justify-end">
+                                <i class="ph-fill ph-star"></i>
+                                <span id="profile-rating">4.9</span>
+                            </div>
+                            <p id="profile-reviews-count" class="text-[10px] text-stone-400">127 bookings</p>
+                        </div>
+                    </div>
+
+                    <!-- Trust Verification Checkmarks -->
+                    <div class="pt-3 border-t border-stone-100 grid grid-cols-2 gap-2 text-xs">
+                        <div class="flex items-center gap-2 text-stone-700 font-semibold bg-stone-50 p-2 rounded-xl">
+                            <i class="ph-fill ph-shield-check text-emerald-600 text-base"></i>
+                            <span>Identity Verified ✓</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-stone-700 font-semibold bg-stone-50 p-2 rounded-xl">
+                            <i class="ph-fill ph-user-check text-emerald-600 text-base"></i>
+                            <span>Police Verified ✓</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cook Metrics -->
+                <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div class="p-3 bg-brand-bg rounded-2xl border border-stone-200">
+                        <p class="text-stone-400 text-[10px]">Experience</p>
+                        <p id="profile-exp" class="font-bold text-stone-800 text-sm mt-0.5">8 Years</p>
+                    </div>
+                    <div class="p-3 bg-brand-bg rounded-2xl border border-stone-200">
+                        <p class="text-stone-400 text-[10px]">Languages</p>
+                        <p id="profile-lang" class="font-bold text-stone-800 text-xs mt-0.5">Hindi • Marathi</p>
+                    </div>
+                    <div class="p-3 bg-brand-bg rounded-2xl border border-stone-200">
+                        <p class="text-stone-400 text-[10px]">Distance</p>
+                        <p id="profile-distance" class="font-bold text-stone-800 text-sm mt-0.5">1.8 km away</p>
+                    </div>
+                </div>
+
+                <!-- Transparent Fare Breakdown Card -->
+                <div class="p-4 rounded-2xl bg-stone-900 text-white space-y-3">
+                    <div class="flex justify-between items-center text-xs border-b border-stone-800 pb-2">
+                        <span class="text-stone-400">Cook Fee (3 hours)</span>
+                        <span id="profile-price-cook" class="font-bold">₹699</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs border-b border-stone-800 pb-2">
+                        <span class="text-stone-400">Platform Fee & Guarantee</span>
+                        <span id="profile-price-platform" class="font-bold">₹49</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm font-bold text-amber-300">
+                        <span>Total Payable</span>
+                        <span id="profile-price-total">₹748</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sticky Bottom Checkout Trigger -->
+            <div class="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto p-4 bg-white/95 backdrop-blur-md border-t border-stone-200 z-40">
+                <button onclick="openPaymentGateway()" class="w-full bg-brand-accent hover:bg-brand-accentHover text-white py-3.5 rounded-xl font-bold text-sm shadow-float transition-all text-center flex items-center justify-center gap-2">
+                    <i class="ph ph-lock-key"></i>
+                    <span>PROCEED TO PAY & BOOK</span>
+                </button>
+            </div>
+        </main>
+
+        <!-- VIEW 6: BOOKING CONFIRMATION & KITCHEN CHECKLIST -->
+        <main id="view-confirmation" class="page-view flex-1 p-5 pb-24 space-y-6">
+            <!-- Success Header -->
+            <div class="bg-emerald-50 border border-emerald-200 rounded-3xl p-5 text-center space-y-2">
+                <div class="w-12 h-12 rounded-full bg-emerald-500 text-white text-xl flex items-center justify-center mx-auto shadow-md">
+                    ✓
+                </div>
+                <h2 class="font-serif text-2xl font-bold text-emerald-950">Your Bawarchi is Booked!</h2>
+                <p class="text-xs text-emerald-700">Booking ID: #BW24-8932 • Online Payment Completed ✓</p>
+            </div>
+
+            <!-- Cook Live Arrival Status Card -->
+            <div class="bg-white rounded-2xl p-4 border border-stone-200 shadow-soft space-y-3">
+                <div class="flex items-center gap-3">
+                    <img id="conf-cook-img" src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&q=80" alt="Cook" class="w-14 h-14 rounded-xl object-cover">
+                    <div class="flex-1">
+                        <h3 id="conf-cook-name" class="font-serif font-bold text-base text-brand-dark">Priya K.</h3>
+                        <p id="conf-cook-details" class="text-xs text-stone-500">Maharashtrian Specialist • ⭐ 4.9</p>
+                        <p class="text-[11px] font-bold text-brand-accent mt-0.5">⏱️ Arrival in 2h 14m</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button onclick="simulateCall()" class="py-2 bg-stone-900 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
+                        <i class="ph ph-phone"></i> Call Cook
+                    </button>
+                    <button onclick="simulateChat()" class="py-2 bg-stone-100 text-stone-800 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 border border-stone-200">
+                        <i class="ph ph-chat-circle-dots"></i> Chat
+                    </button>
+                </div>
+            </div>
+
+            <!-- "WHAT TO KEEP READY" REASSURANCE CHECKLIST -->
+            <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-5 space-y-3">
+                <div class="flex items-center gap-2 text-brand-accent font-bold text-sm">
+                    <i class="ph ph-list-checks text-xl"></i>
+                    <span>What to keep ready before cook arrives:</span>
+                </div>
+                <p class="text-xs text-stone-600 leading-relaxed">Checking these off avoids any confusion during cooking:</p>
+
+                <div class="space-y-2.5 text-xs text-stone-800 font-medium">
+                    <label class="flex items-center gap-2.5 cursor-pointer bg-white/80 p-2.5 rounded-xl border border-amber-100">
+                        <input type="checkbox" checked class="w-4 h-4 rounded text-brand-accent focus:ring-brand-accent">
+                        <span>Ingredients (Vegetables, Spices, Oil, Salt)</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 cursor-pointer bg-white/80 p-2.5 rounded-xl border border-amber-100">
+                        <input type="checkbox" checked class="w-4 h-4 rounded text-brand-accent focus:ring-brand-accent">
+                        <span>Utensils & Pans (Kadai, Pressure Cooker, Plates)</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 cursor-pointer bg-white/80 p-2.5 rounded-xl border border-amber-100">
+                        <input type="checkbox" checked class="w-4 h-4 rounded text-brand-accent focus:ring-brand-accent">
+                        <span>Kitchen Access & Gas / Induction Stove operational</span>
+                    </label>
+                </div>
+            </div>
+
+            <button onclick="switchView('my-bawarchis')" class="w-full bg-stone-900 text-white py-3.5 rounded-xl font-bold text-sm text-center">
+                Go to My Bookings Hub
+            </button>
+        </main>
+
+        <!-- VIEW 7: MY BAWARCHIS & REBOOK HUB -->
+        <main id="view-my-bawarchis" class="page-view flex-1 p-5 pb-24 space-y-6">
+            <div>
+                <h2 class="font-serif text-2xl font-bold text-brand-dark">My Bawarchis ❤️</h2>
+                <p class="text-xs text-stone-500 font-medium">Your circle of trusted personal home cooks</p>
+            </div>
+
+            <!-- Upcoming Bookings Section -->
+            <div class="space-y-3">
+                <h3 class="font-bold text-xs uppercase tracking-wider text-stone-400">Upcoming Sessions</h3>
+                <div class="bg-white rounded-2xl p-4 border border-amber-300 shadow-soft space-y-2">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center font-bold text-brand-accent text-xs">
+                                Sun
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-brand-dark">Priya K.</h4>
+                                <p class="text-xs text-stone-500">Sunday • 7:00 PM • Maharashtrian</p>
+                            </div>
+                        </div>
+                        <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">Paid ✓</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Signature Feature: Favourite Cooks Circle with 1-Tap Rebook -->
+            <div class="space-y-3">
+                <h3 class="font-bold text-xs uppercase tracking-wider text-stone-400">Book your favourite Bawarchi again</h3>
+
+                <div class="grid grid-cols-1 gap-3">
+                    <!-- Favorite 1 -->
+                    <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&q=80" alt="Priya" class="w-12 h-12 rounded-full object-cover">
+                            <div>
+                                <h4 class="font-bold text-sm text-brand-dark">Priya K.</h4>
+                                <p class="text-xs text-stone-500">⭐ 4.9 • 12 bookings with you</p>
+                            </div>
+                        </div>
+                        <button onclick="rebookCook('Priya K.')" class="px-4 py-2 bg-brand-accent hover:bg-brand-accentHover text-white text-xs font-bold rounded-xl shadow-sm">
+                            Rebook
+                        </button>
+                    </div>
+
+                    <!-- Favorite 2 -->
+                    <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&q=80" alt="Shabana" class="w-12 h-12 rounded-full object-cover">
+                            <div>
+                                <h4 class="font-bold text-sm text-brand-dark">Shabana S.</h4>
+                                <p class="text-xs text-stone-500">⭐ 4.8 • 6 bookings with you</p>
+                            </div>
+                        </div>
+                        <button onclick="rebookCook('Shabana S.')" class="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold rounded-xl border border-stone-300">
+                            Rebook
+                        </button>
+                    </div>
+
+                    <!-- Favorite 3 -->
+                    <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80" alt="Ramesh" class="w-12 h-12 rounded-full object-cover">
+                            <div>
+                                <h4 class="font-bold text-sm text-brand-dark">Ramesh T.</h4>
+                                <p class="text-xs text-stone-500">⭐ 4.9 • 4 bookings with you</p>
+                            </div>
+                        </div>
+                        <button onclick="rebookCook('Ramesh T.')" class="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold rounded-xl border border-stone-300">
+                            Rebook
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- VIEW 8: COOK-SIDE PARTNER PORTAL -->
+        <main id="view-partner-dashboard" class="page-view flex-1 p-5 pb-24 space-y-6">
+            <!-- Cook Status Box -->
+            <div class="bg-stone-900 text-white p-5 rounded-3xl shadow-soft space-y-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&q=80" alt="Priya Cook" class="w-12 h-12 rounded-full object-cover border-2 border-brand-gold">
+                        <div>
+                            <h3 class="font-serif font-bold text-lg text-white">Good morning, Priya</h3>
+                            <p class="text-xs text-stone-400">Verified Bawarchi Partner</p>
+                        </div>
+                    </div>
+
+                    <!-- Online Switch -->
+                    <label class="flex items-center gap-2 cursor-pointer bg-white/10 px-3 py-1.5 rounded-full border border-white/20">
+                        <span id="cook-status-text" class="text-xs font-bold text-emerald-400">🟢 Online</span>
+                        <input type="checkbox" id="cook-online-toggle" checked onchange="toggleCookOnlineStatus()" class="hidden">
+                    </label>
+                </div>
+
+                <!-- Earnings Widget -->
+                <div class="grid grid-cols-3 gap-2 pt-2 border-t border-stone-800 text-center">
+                    <div>
+                        <p class="text-[10px] text-stone-400">Today</p>
+                        <p class="font-bold text-sm text-amber-300">₹1,398</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-stone-400">This Week</p>
+                        <p class="font-bold text-sm text-stone-200">₹6,450</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-stone-400">This Month</p>
+                        <p class="font-bold text-sm text-emerald-400">₹24,800</p>
+                    </div>
+                </div>
+
+                <button onclick="showToast('Payout of ₹24,800 sent to HDFC Bank A/c')" class="w-full py-2.5 bg-brand-accent hover:bg-brand-accentHover text-white text-xs font-bold rounded-xl transition-colors">
+                    Withdraw Earnings to Bank
+                </button>
+            </div>
+
+            <!-- Job Dispatch Requests -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-xs uppercase tracking-wider text-stone-500">Incoming Dispatch Requests</h3>
+                    <span class="text-xs font-bold text-brand-accent">1 Request Nearby</span>
+                </div>
+
+                <div class="bg-white rounded-2xl p-4 border border-amber-300 shadow-sm space-y-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900">7:00 PM • Today</span>
+                            <h4 class="font-bold text-base text-stone-900 mt-1">Kothrud, Pune (1.8 km)</h4>
+                            <p class="text-xs text-stone-500">3 Hours • 4 People • Maharashtrian</p>
+                        </div>
+                        <span class="font-extrabold text-base text-brand-dark">₹699</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <button onclick="declineJob(this)" class="py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-xl">
+                            Decline
+                        </button>
+                        <button onclick="acceptJob(this)" class="py-2.5 bg-brand-sage text-white text-xs font-bold rounded-xl shadow-md">
+                            ACCEPT JOB
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- MODAL: INDIAN ONLINE PAYMENT GATEWAY (STRICTLY NO OFFLINE CASH) -->
+        <div id="modal-payment-gateway" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+            <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md p-6 space-y-5 shadow-modal relative max-h-[90vh] overflow-y-auto">
+                
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 font-extrabold text-xs flex items-center justify-center">
+                            🔒
+                        </div>
+                        <div>
+                            <h3 class="font-serif font-bold text-lg text-brand-dark">Razorpay Secure Checkout</h3>
+                            <p class="text-[11px] text-stone-500">100% Online Payment Required (No COD)</p>
+                        </div>
+                    </div>
+                    <button onclick="closePaymentGateway()" class="w-8 h-8 rounded-full bg-stone-100 text-stone-600 font-bold flex items-center justify-center">✕</button>
+                </div>
+
+                <!-- Total Amount Banner -->
+                <div class="bg-amber-50 p-3.5 rounded-2xl border border-amber-200 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-stone-600">Payable Amount for Booking</p>
+                        <p class="text-[10px] text-stone-400">Includes Cook fee & Insurance guarantee</p>
+                    </div>
+                    <span id="payment-modal-amount" class="text-xl font-extrabold text-brand-dark">₹748</span>
+                </div>
+
+                <!-- Payment Method Tabs -->
+                <div class="grid grid-cols-4 gap-1 bg-stone-100 p-1 rounded-2xl text-center text-xs font-medium">
+                    <button id="tab-btn-upi" onclick="switchPayTab('upi')" class="pay-tab-btn active py-2 rounded-xl transition-all">UPI</button>
+                    <button id="tab-btn-apple" onclick="switchPayTab('apple')" class="pay-tab-btn py-2 rounded-xl transition-all"> Pay</button>
+                    <button id="tab-btn-card" onclick="switchPayTab('card')" class="pay-tab-btn py-2 rounded-xl transition-all">Cards</button>
+                    <button id="tab-btn-net" onclick="switchPayTab('net')" class="pay-tab-btn py-2 rounded-xl transition-all">NetBank</button>
+                </div>
+
+                <!-- TAB CONTENT 1: UPI OPTIONS -->
+                <div id="pay-tab-content-upi" class="pay-tab-content space-y-3">
+                    <p class="text-xs font-bold text-stone-700">Instant UPI Payment Apps:</p>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <!-- PhonePe -->
+                        <button onclick="processSimulatedPayment('PhonePe')" class="p-3 border border-stone-200 hover:border-brand-accent rounded-2xl flex items-center gap-2 bg-white text-left shadow-sm">
+                            <span class="w-7 h-7 rounded-lg bg-purple-700 text-white font-extrabold text-[10px] flex items-center justify-center">पे</span>
+                            <span class="text-xs font-bold text-stone-800">PhonePe</span>
+                        </button>
+
+                        <!-- Google Pay (GPay) -->
+                        <button onclick="processSimulatedPayment('Google Pay')" class="p-3 border border-stone-200 hover:border-brand-accent rounded-2xl flex items-center gap-2 bg-white text-left shadow-sm">
+                            <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-extrabold text-[10px] flex items-center justify-center">G</span>
+                            <span class="text-xs font-bold text-stone-800">GPay</span>
+                        </button>
+
+                        <!-- Paytm -->
+                        <button onclick="processSimulatedPayment('Paytm UPI')" class="p-3 border border-stone-200 hover:border-brand-accent rounded-2xl flex items-center gap-2 bg-white text-left shadow-sm">
+                            <span class="w-7 h-7 rounded-lg bg-sky-500 text-white font-extrabold text-[9px] flex items-center justify-center">Paytm</span>
+                            <span class="text-xs font-bold text-stone-800">Paytm UPI</span>
+                        </button>
+
+                        <!-- BHIM -->
+                        <button onclick="processSimulatedPayment('BHIM UPI')" class="p-3 border border-stone-200 hover:border-brand-accent rounded-2xl flex items-center gap-2 bg-white text-left shadow-sm">
+                            <span class="w-7 h-7 rounded-lg bg-orange-600 text-white font-extrabold text-[9px] flex items-center justify-center">BHIM</span>
+                            <span class="text-xs font-bold text-stone-800">BHIM UPI</span>
+                        </button>
+                    </div>
+
+                    <!-- Custom UPI VPA input -->
+                    <div class="pt-2">
+                        <label class="block text-xs font-bold text-stone-700 mb-1">Or enter VPA / UPI ID:</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="upi-id-input" placeholder="e.g. mobile@upi" class="flex-1 p-2.5 border border-stone-200 rounded-xl text-xs outline-none focus:border-brand-accent">
+                            <button onclick="processCustomUPI()" class="px-4 py-2.5 bg-brand-accent text-white font-bold text-xs rounded-xl shadow-sm">Verify & Pay</button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic QR Code Scanner simulation -->
+                    <div class="p-3 bg-stone-50 border border-stone-200 rounded-2xl text-center space-y-2">
+                        <p class="text-[11px] font-bold text-stone-700">Scan QR Code using any UPI App</p>
+                        <div class="w-28 h-28 mx-auto bg-white p-2 border border-stone-300 rounded-xl flex items-center justify-center shadow-inner">
+                            <i class="ph ph-qr-code text-6xl text-stone-800"></i>
+                        </div>
+                        <p class="text-[10px] text-stone-400">Accepts PhonePe, GPay, Paytm, Cred, BHIM</p>
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT 2: APPLE PAY -->
+                <div id="pay-tab-content-apple" class="pay-tab-content hidden space-y-4 text-center py-4">
+                    <div class="w-16 h-16 rounded-2xl bg-black text-white text-3xl flex items-center justify-center mx-auto shadow-md">
+                        
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm text-stone-800">Pay with Apple Pay</h4>
+                        <p class="text-xs text-stone-500">Fast, 1-touch biometric checkout using Touch ID or Face ID.</p>
+                    </div>
+                    <button onclick="processSimulatedPayment('Apple Pay')" class="w-full py-3.5 bg-black hover:bg-stone-800 text-white font-bold text-sm rounded-xl shadow-md flex items-center justify-center gap-2">
+                        <span>Pay with</span>
+                        <span class="text-lg">Pay</span>
+                    </button>
+                </div>
+
+                <!-- TAB CONTENT 3: CARDS -->
+                <div id="pay-tab-content-card" class="pay-tab-content hidden space-y-3">
+                    <div class="space-y-2 text-xs">
+                        <div>
+                            <label class="block font-bold text-stone-700 mb-1">Card Number</label>
+                            <input type="text" placeholder="4532 •••• •••• 8921" class="w-full p-2.5 border border-stone-200 rounded-xl outline-none focus:border-brand-accent font-mono">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block font-bold text-stone-700 mb-1">Expiry (MM/YY)</label>
+                                <input type="text" placeholder="08/28" class="w-full p-2.5 border border-stone-200 rounded-xl outline-none focus:border-brand-accent text-center font-mono">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-stone-700 mb-1">CVV</label>
+                                <input type="password" maxlength="3" placeholder="•••" class="w-full p-2.5 border border-stone-200 rounded-xl outline-none focus:border-brand-accent text-center font-mono">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px] text-stone-400 pt-1">
+                        <span>Accepted Cards:</span>
+                        <span class="font-bold text-stone-600">Visa • Mastercard • RuPay</span>
+                    </div>
+                    <button onclick="processSimulatedPayment('Credit/Debit Card')" class="w-full py-3 bg-brand-accent text-white font-bold text-xs rounded-xl shadow-md">
+                        Pay Securely via Card
+                    </button>
+                </div>
+
+                <!-- TAB CONTENT 4: NET BANKING -->
+                <div id="pay-tab-content-net" class="pay-tab-content hidden space-y-3">
+                    <p class="text-xs font-bold text-stone-700">Select Bank:</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="processSimulatedPayment('HDFC NetBanking')" class="p-2.5 border border-stone-200 rounded-xl text-left text-xs font-bold text-stone-800 hover:border-brand-accent">HDFC Bank</button>
+                        <button onclick="processSimulatedPayment('ICICI NetBanking')" class="p-2.5 border border-stone-200 rounded-xl text-left text-xs font-bold text-stone-800 hover:border-brand-accent">ICICI Bank</button>
+                        <button onclick="processSimulatedPayment('SBI NetBanking')" class="p-2.5 border border-stone-200 rounded-xl text-left text-xs font-bold text-stone-800 hover:border-brand-accent">State Bank of India</button>
+                        <button onclick="processSimulatedPayment('Axis NetBanking')" class="p-2.5 border border-stone-200 rounded-xl text-left text-xs font-bold text-stone-800 hover:border-brand-accent">Axis Bank</button>
+                    </div>
+                </div>
+
+                <!-- Strict No COD Guarantee Notice -->
+                <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-200 text-center">
+                    <p class="text-[10px] text-stone-500 font-medium">⚡ 100% Refundable up to 2 hours before cook slot in case of cancellation.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAYMENT PROCESSING LOADER OVERLAY -->
+        <div id="payment-loader-overlay" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl p-6 text-center space-y-4 max-w-xs w-full shadow-2xl">
+                <div class="w-16 h-16 border-4 border-brand-accent border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <div>
+                    <h4 class="font-serif font-bold text-lg text-brand-dark">Verifying Online Payment...</h4>
+                    <p id="payment-loader-sub" class="text-xs text-stone-500 mt-1">Connecting securely with bank gateway...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: CHEF REGISTRATION FLOW -->
+        <div id="modal-chef-reg" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl w-full max-w-md p-6 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                <button onclick="closeChefRegModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center font-bold">✕</button>
+
+                <div class="space-y-1">
+                    <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-bold">
+                        <i class="ph ph-chef-hat"></i> Cook Onboarding
+                    </div>
+                    <h2 class="font-serif text-2xl font-bold text-brand-dark">Register as a Bawarchi</h2>
+                    <p class="text-xs text-stone-500">Earn up to ₹30,000/month cooking in homes near you.</p>
+                </div>
+
+                <form id="chef-reg-form" onsubmit="handleChefRegSubmit(event)" class="space-y-4">
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <label class="block font-bold text-stone-700 mb-1">Full Name</label>
+                            <input type="text" required placeholder="e.g. Ramesh Todkar" class="w-full p-3 rounded-xl border border-stone-200 font-medium outline-none focus:border-brand-accent">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-stone-700 mb-1">Phone Number</label>
+                            <input type="tel" required placeholder="+91 98220 00000" class="w-full p-3 rounded-xl border border-stone-200 font-medium outline-none focus:border-brand-accent">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-stone-700 mb-1">Primary Cuisines</label>
+                            <input type="text" required placeholder="e.g. Maharashtrian, North Indian" class="w-full p-3 rounded-xl border border-stone-200 font-medium outline-none focus:border-brand-accent">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-stone-700 mb-1">Cooking Experience</label>
+                            <select class="w-full p-3 rounded-xl border border-stone-200 font-medium outline-none focus:border-brand-accent">
+                                <option>3–5 Years</option>
+                                <option>5–10 Years</option>
+                                <option>10+ Years</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3.5 bg-brand-accent text-white font-bold text-sm rounded-xl shadow-float">
+                        Complete Onboarding & Start Earning
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL: DUAL ROLE SELECTOR -->
+        <div id="modal-role-select" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl text-center">
+                <h3 class="font-serif text-xl font-bold text-stone-900">Choose App Mode</h3>
+                <p class="text-xs text-stone-500">Switch between booking meals and cook partner app.</p>
+
+                <div class="space-y-2 pt-2">
+                    <button onclick="selectAppRole('customer')" class="w-full p-4 rounded-2xl border border-stone-200 bg-stone-50 hover:bg-amber-50 text-left flex items-center gap-3 transition-colors">
+                        <span class="text-2xl">👩‍💼</span>
+                        <div>
+                            <p class="font-bold text-sm text-stone-800">Customer Mode</p>
+                            <p class="text-[11px] text-stone-500">Book cooks for meals & parties</p>
+                        </div>
+                    </button>
+
+                    <button onclick="selectAppRole('partner')" class="w-full p-4 rounded-2xl border border-stone-200 bg-stone-50 hover:bg-amber-50 text-left flex items-center gap-3 transition-colors">
+                        <span class="text-2xl">👨‍🍳</span>
+                        <div>
+                            <p class="font-bold text-sm text-stone-800">Bawarchi Partner Portal</p>
+                            <p class="text-[11px] text-stone-500">Accept job requests & track earnings</p>
+                        </div>
+                    </button>
+                </div>
+
+                <button onclick="openChefRegModal()" class="w-full py-2.5 text-xs font-bold text-brand-accent underline">
+                    Want to register as a new Cook? Register here
+                </button>
+            </div>
+        </div>
+
+        <!-- BOTTOM FIXED NAVIGATION BAR -->
+        <nav id="bottom-nav-bar" class="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto bg-white/95 backdrop-blur-md border-t border-stone-200 z-40 py-2 px-3 flex justify-around items-center">
+            <button onclick="switchView('home')" class="nav-tab-btn active flex flex-col items-center gap-0.5 text-brand-accent font-bold">
+                <i class="ph ph-house text-xl"></i>
+                <span class="text-[10px]">Home</span>
+            </button>
+            <button onclick="switchView('wizard')" class="nav-tab-btn flex flex-col items-center gap-0.5 text-stone-400 font-medium">
+                <i class="ph ph-calendar-plus text-xl"></i>
+                <span class="text-[10px]">Book</span>
+            </button>
+            <button onclick="switchView('my-bawarchis')" class="nav-tab-btn flex flex-col items-center gap-0.5 text-stone-400 font-medium">
+                <i class="ph ph-heart text-xl"></i>
+                <span class="text-[10px]">My Bawarchis</span>
+            </button>
+            <button onclick="openRoleSelectModal()" class="nav-tab-btn flex flex-col items-center gap-0.5 text-stone-400 font-medium">
+                <i class="ph ph-chef-hat text-xl"></i>
+                <span class="text-[10px]">Partner Portal</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <script>
+        // GLOBAL STATE ENGINE
+        const state = {
+            role: 'customer',
+            currency: 'INR',
+            exchangeRate: 0.012,
+            wizardStep: 1,
+            bookingData: {
+                type: 'onetime',
+                date: 'Today',
+                time: '7:00 PM',
+                people: '3-4 people',
+                cuisine: 'Maharashtrian',
+                duration: '3 hours',
+                location: 'Kothrud, Pune'
+            },
+            cooks: [
+                {
+                    id: 1,
+                    name: "Priya K.",
+                    rating: 4.9,
+                    bookings: 127,
+                    cuisines: "Maharashtrian • North Indian",
+                    distanceKm: 1.8,
+                    priceInr: 699,
+                    isVeg: true,
+                    img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80",
+                    expYears: 8,
+                    languages: "Hindi • Marathi • English"
+                },
+                {
+                    id: 2,
+                    name: "Shabana S.",
+                    rating: 4.8,
+                    bookings: 86,
+                    cuisines: "Mughlai • North Indian",
+                    distanceKm: 2.4,
+                    priceInr: 799,
+                    isVeg: false,
+                    img: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&q=80",
+                    expYears: 6,
+                    languages: "Hindi • Urdu"
+                },
+                {
+                    id: 3,
+                    name: "Ramesh T.",
+                    rating: 4.9,
+                    bookings: 142,
+                    cuisines: "South Indian • Healthy Diet",
+                    distanceKm: 1.2,
+                    priceInr: 649,
+                    isVeg: true,
+                    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
+                    expYears: 10,
+                    languages: "Hindi • Marathi • English"
+                },
+                {
+                    id: 4,
+                    name: "Sunita M.",
+                    rating: 4.7,
+                    bookings: 54,
+                    cuisines: "Jain Special • Maharashtrian",
+                    distanceKm: 3.1,
+                    priceInr: 599,
+                    isVeg: true,
+                    img: "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=400&q=80",
+                    expYears: 5,
+                    languages: "Hindi • Gujarati"
+                }
+            ],
+            selectedCook: null
+        };
+
+        // DOM LOAD INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            state.selectedCook = state.cooks[0];
+            renderCookResults(state.cooks);
+            updateProfileView(state.selectedCook);
+        });
+
+        // VIEW ROUTER
+        function switchView(viewId) {
+            document.querySelectorAll('.page-view').forEach(view => {
+                view.classList.remove('active-view');
+            });
+            const target = document.getElementById('view-' + viewId);
+            if (target) {
+                target.classList.add('active-view');
+                window.scrollTo(0, 0);
+            }
+
+            // Update Bottom Navigation Styling
+            document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+                btn.classList.remove('text-brand-accent', 'font-bold');
+                btn.classList.add('text-stone-400', 'font-medium');
+            });
+
+            const navMap = {
+                'home': 0,
+                'wizard': 1,
+                'my-bawarchis': 2,
+                'partner-dashboard': 3
+            };
+            if (navMap[viewId] !== undefined) {
+                const activeBtn = document.querySelectorAll('.nav-tab-btn')[navMap[viewId]];
+                if (activeBtn) {
+                    activeBtn.classList.remove('text-stone-400', 'font-medium');
+                    activeBtn.classList.add('text-brand-accent', 'font-bold');
+                }
+            }
+        }
+
+        // LOCATION PICKER HANDLER
+        function updateLocation(val) {
+            state.bookingData.location = val;
+            document.getElementById('home-location-display').textContent = val;
+            showToast(`Location updated to ${val}`);
+        }
+
+        // CURRENCY CONVERTER
+        function toggleCurrency() {
+            state.currency = state.currency === 'INR' ? 'USD' : 'INR';
+            document.getElementById('curr-code').textContent = state.currency;
+            document.getElementById('curr-symbol').textContent = state.currency === 'INR' ? '₹' : '$';
+            showToast(`Currency changed to ${state.currency}`);
+            renderCookResults(state.cooks);
+            if (state.selectedCook) updateProfileView(state.selectedCook);
+        }
+
+        function formatPrice(amountInr) {
+            if (state.currency === 'USD') {
+                return '$' + (amountInr * state.exchangeRate).toFixed(2);
+            }
+            return '₹' + amountInr;
+        }
+
+        // PAYMENT GATEWAY MODAL & ONLINE METHODS
+        function openPaymentGateway() {
+            const cook = state.selectedCook || state.cooks[0];
+            const totalInr = cook.priceInr + 49;
+            document.getElementById('payment-modal-amount').textContent = formatPrice(totalInr);
+            document.getElementById('modal-payment-gateway').classList.remove('hidden');
+        }
+
+        function closePaymentGateway() {
+            document.getElementById('modal-payment-gateway').classList.add('hidden');
+        }
+
+        function switchPayTab(tabName) {
+            document.querySelectorAll('.pay-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.pay-tab-content').forEach(c => c.classList.add('hidden'));
+
+            document.getElementById(`tab-btn-${tabName}`).classList.add('active');
+            document.getElementById(`pay-tab-content-${tabName}`).classList.remove('hidden');
+        }
+
+        function processCustomUPI() {
+            const vpa = document.getElementById('upi-id-input').value;
+            if (!vpa || !vpa.includes('@')) {
+                showToast('Please enter a valid UPI ID (e.g. mobile@upi)');
+                return;
+            }
+            processSimulatedPayment(`UPI (${vpa})`);
+        }
+
+        function processSimulatedPayment(methodName) {
+            closePaymentGateway();
+            const loader = document.getElementById('payment-loader-overlay');
+            const sub = document.getElementById('payment-loader-sub');
+            
+            sub.textContent = `Authorizing ${methodName} payment...`;
+            loader.classList.remove('hidden');
+
+            setTimeout(() => {
+                sub.textContent = 'Securing booking slot with Bawarchi...';
+            }, 1200);
+
+            setTimeout(() => {
+                loader.classList.add('hidden');
+                confirmAndPaySuccess();
+            }, 2400);
+        }
+
+        function confirmAndPaySuccess() {
+            const cook = state.selectedCook || state.cooks[0];
+            document.getElementById('conf-cook-name').textContent = cook.name;
+            document.getElementById('conf-cook-details').textContent = `${cook.cuisines} • ⭐ ${cook.rating}`;
+            document.getElementById('conf-cook-img').src = cook.img;
+
+            showToast(`Payment Successful! ${cook.name} is booked.`);
+            switchView('confirmation');
+        }
+
+        // BOOKING WIZARD LOGIC
+        function startWizard(type) {
+            state.bookingData.type = type;
+            state.wizardStep = 1;
+            updateWizardStepUI();
+            switchView('wizard');
+        }
+
+        function nextWizardStep() {
+            if (state.wizardStep < 5) {
+                state.wizardStep++;
+                updateWizardStepUI();
+            } else {
+                switchView('results');
+                showToast('Finding matched Bawarchis...');
+            }
+        }
+
+        function prevWizardStep() {
+            if (state.wizardStep > 1) {
+                state.wizardStep--;
+                updateWizardStepUI();
+            }
+        }
+
+        function updateWizardStepUI() {
+            document.querySelectorAll('.wizard-step-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`wizard-step-${state.wizardStep}`).classList.remove('hidden');
+
+            const titles = [
+                'When do you need a cook?',
+                'What time slot?',
+                'How many people to feed?',
+                'What kind of food?',
+                'How long do you need the cook?'
+            ];
+
+            document.getElementById('wizard-step-label').textContent = `STEP ${state.wizardStep} OF 5`;
+            document.getElementById('wizard-step-title').textContent = titles[state.wizardStep - 1];
+            document.getElementById('wizard-progress-bar').style.width = `${(state.wizardStep / 5) * 100}%`;
+
+            const prevBtn = document.getElementById('wizard-prev-btn');
+            const nextBtn = document.getElementById('wizard-next-btn');
+
+            if (state.wizardStep === 1) prevBtn.classList.add('hidden');
+            else prevBtn.classList.remove('hidden');
+
+            if (state.wizardStep === 5) nextBtn.textContent = 'Find my Bawarchi →';
+            else nextBtn.textContent = 'Next Step →';
+
+            updateWizardSummary();
+        }
+
+        function updateWizardSummary() {
+            const date = document.querySelector('input[name="w_date"]:checked')?.value || 'Today';
+            const time = document.querySelector('input[name="w_time"]:checked')?.value || '7:00 PM';
+            const people = document.querySelector('input[name="w_people"]:checked')?.value || '3-4 people';
+            const cuisine = document.querySelector('input[name="w_cuisine"]:checked')?.value || 'Maharashtrian';
+            const duration = document.querySelector('input[name="w_duration"]:checked')?.value || '3 hours';
+
+            state.bookingData = { date, time, people, cuisine, duration };
+            document.getElementById('wizard-summary-text').textContent = `${date} • ${time} • ${people} • ${cuisine} • ${duration}`;
+        }
+
+        // RENDER RESULTS & FILTERS
+        function renderCookResults(cooksList) {
+            const container = document.getElementById('cook-results-list');
+            container.innerHTML = '';
+
+            cooksList.forEach(cook => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-3xl p-4 shadow-soft border border-stone-200 flex flex-col gap-3 relative overflow-hidden';
+                card.innerHTML = `
+                    <div class="flex gap-3.5">
+                        <img src="${cook.img}" alt="${cook.name}" class="w-20 h-24 rounded-2xl object-cover flex-shrink-0">
+                        <div class="flex-1 space-y-1">
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-serif font-bold text-lg text-brand-dark">${cook.name}</h3>
+                                <span class="flex items-center gap-1 text-xs font-bold text-amber-500">
+                                    <i class="ph-fill ph-star"></i> ${cook.rating}
+                                </span>
+                            </div>
+                            <p class="text-xs text-stone-500 font-medium">${cook.cuisines}</p>
+                            <p class="text-[11px] text-stone-400">📍 ${cook.distanceKm} km away • ${cook.bookings} bookings</p>
+                            <span class="inline-block text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Verified ✓</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-stone-100 pt-3">
+                        <div>
+                            <span class="text-xs text-stone-400">Fee: </span>
+                            <span class="font-bold text-base text-brand-dark">${formatPrice(cook.priceInr)}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="viewCookProfile(${cook.id})" class="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold rounded-xl">View Profile</button>
+                            <button onclick="instantBookCook(${cook.id})" class="px-3.5 py-1.5 bg-brand-accent hover:bg-brand-accentHover text-white text-xs font-bold rounded-xl shadow-sm">Book</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('results-count-subtitle').textContent = `${cooksList.length} verified cooks available near ${state.bookingData.location}`;
+        }
+
+        function filterCooks(type) {
+            document.querySelectorAll('.filter-pill').forEach(p => {
+                p.classList.remove('bg-brand-dark', 'text-white');
+                p.classList.add('bg-white', 'text-stone-600');
+            });
+            event.target.classList.remove('bg-white', 'text-stone-600');
+            event.target.classList.add('bg-brand-dark', 'text-white');
+
+            if (type === 'all') renderCookResults(state.cooks);
+            if (type === 'top-rated') renderCookResults(state.cooks.filter(c => c.rating >= 4.8));
+            if (type === 'nearest') renderCookResults(state.cooks.filter(c => c.distanceKm <= 2.0));
+            if (type === 'veg') renderCookResults(state.cooks.filter(c => c.isVeg));
+        }
+
+        function viewCookProfile(cookId) {
+            const cook = state.cooks.find(c => c.id === cookId);
+            if (cook) {
+                state.selectedCook = cook;
+                updateProfileView(cook);
+                switchView('profile');
+            }
+        }
+
+        function updateProfileView(cook) {
+            document.getElementById('profile-hero-img').src = cook.img;
+            document.getElementById('profile-name').textContent = cook.name;
+            document.getElementById('profile-cuisines').textContent = cook.cuisines;
+            document.getElementById('profile-rating').textContent = cook.rating;
+            document.getElementById('profile-reviews-count').textContent = `${cook.bookings} bookings`;
+            document.getElementById('profile-exp').textContent = `${cook.expYears} Years`;
+            document.getElementById('profile-lang').textContent = cook.languages;
+            document.getElementById('profile-distance').textContent = `${cook.distanceKm} km away`;
+
+            document.getElementById('profile-price-cook').textContent = formatPrice(cook.priceInr);
+            document.getElementById('profile-price-platform').textContent = formatPrice(49);
+            document.getElementById('profile-price-total').textContent = formatPrice(cook.priceInr + 49);
+        }
+
+        function instantBookCook(cookId) {
+            viewCookProfile(cookId);
+            openPaymentGateway();
+        }
+
+        function rebookCook(cookName) {
+            showToast(`Rebooking request initiated for ${cookName}`);
+            switchView('wizard');
+        }
+
+        // QUICK ACTIONS
+        function selectQuickDay(dayName) {
+            document.querySelectorAll('.quick-day-btn').forEach(btn => {
+                btn.className = 'quick-day-btn py-2.5 px-3 rounded-xl border border-stone-200 bg-white text-stone-700 font-medium text-xs text-center';
+            });
+            event.target.className = 'quick-day-btn active py-2.5 px-3 rounded-xl border border-brand-accent bg-amber-50 text-brand-accent font-bold text-xs text-center shadow-sm';
+            state.bookingData.date = dayName;
+            showToast(`Filter set to ${dayName}`);
+        }
+
+        function quickFilterCuisine(cuisine) {
+            state.bookingData.cuisine = cuisine;
+            switchView('wizard');
+            showToast(`Selected ${cuisine} Cuisine`);
+        }
+
+        function triggerEmergencyBooking() {
+            showToast('🚨 Alerting nearest available cooks...');
+            switchView('results');
+        }
+
+        // ROLE TOGGLE & PARTNER LOGIC
+        function openRoleSelectModal() {
+            document.getElementById('modal-role-select').classList.remove('hidden');
+        }
+
+        function toggleRoleModal() {
+            if (state.role === 'customer') {
+                openRoleSelectModal();
+            } else {
+                selectAppRole('customer');
+            }
+        }
+
+        function selectAppRole(role) {
+            document.getElementById('modal-role-select').classList.add('hidden');
+            state.role = role;
+            const roleLabel = document.getElementById('role-label');
+            const roleIcon = document.getElementById('role-icon');
+
+            if (role === 'partner') {
+                roleLabel.textContent = 'Customer Mode';
+                roleIcon.className = 'ph ph-user text-sm';
+                showToast('Switched to Bawarchi Partner Portal');
+                switchView('partner-dashboard');
+            } else {
+                roleLabel.textContent = 'Partner View';
+                roleIcon.className = 'ph ph-user-gear text-sm';
+                showToast('Switched to Customer View');
+                switchView('home');
+            }
+        }
+
+        function openChefRegModal() {
+            document.getElementById('modal-role-select').classList.add('hidden');
+            document.getElementById('modal-chef-reg').classList.remove('hidden');
+        }
+
+        function closeChefRegModal() {
+            document.getElementById('modal-chef-reg').classList.add('hidden');
+        }
+
+        function handleChefRegSubmit(e) {
+            e.preventDefault();
+            closeChefRegModal();
+            showToast('Partner registration submitted! Welcome aboard.');
+            selectAppRole('partner');
+        }
+
+        function toggleCookOnlineStatus() {
+            const isChecked = document.getElementById('cook-online-toggle').checked;
+            const text = document.getElementById('cook-status-text');
+            if (isChecked) {
+                text.textContent = '🟢 Online';
+                text.className = 'text-xs font-bold text-emerald-400';
+                showToast('Status: Online & receiving jobs');
+            } else {
+                text.textContent = '🔴 Offline';
+                text.className = 'text-xs font-bold text-red-400';
+                showToast('Status: Offline');
+            }
+        }
+
+        function acceptJob(btn) {
+            btn.textContent = 'ACCEPTED ✓';
+            btn.className = 'py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-xl w-full col-span-2 shadow-md';
+            showToast('Job Accepted! Customer notified.');
+        }
+
+        function declineJob(btn) {
+            const card = btn.closest('.bg-white');
+            card.style.opacity = '0.4';
+            card.style.pointerEvents = 'none';
+            showToast('Job request declined.');
+        }
+
+        function simulateCall() {
+            showToast('Connecting phone call to cook...');
+        }
+
+        function simulateChat() {
+            showToast('Opening in-app chat with cook...');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('app-toast');
+            document.getElementById('toast-msg').textContent = message;
+            toast.classList.add('toast-show');
+            setTimeout(() => {
+                toast.classList.remove('toast-show');
+            }, 2800);
+        }
+    </script>
+</body>
+</html>
