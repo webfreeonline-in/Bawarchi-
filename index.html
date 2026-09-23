@@ -215,21 +215,86 @@
                 </div>
             </div>
 
-            <!-- Location Selector Box -->
-            <div class="bg-white rounded-2xl p-3.5 border border-stone-200 shadow-sm flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-50 text-brand-accent flex items-center justify-center flex-shrink-0 text-xl font-bold">
-                    📍
-                </div>
-                <div class="flex-1">
-                    <p class="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Your Location</p>
-                    <select id="user-location-select" onchange="updateLocation(this.value)" class="bg-transparent text-brand-dark font-bold text-sm w-full outline-none cursor-pointer">
-                        <option value="Kothrud, Pune">Kothrud, Pune, MH</option>
-                        <option value="Bandra West, Mumbai">Bandra West, Mumbai, MH</option>
-                        <option value="Indiranagar, Bangalore">Indiranagar, Bangalore, KA</option>
-                        <option value="Vasant Kunj, Delhi">Vasant Kunj, New Delhi</option>
-                    </select>
-                </div>
+           <!-- Detailed Indian Location Selector -->
+<div class="bg-white rounded-2xl p-4 border border-stone-200 shadow-sm flex flex-col gap-4">
+    <div class="flex items-center gap-2 pb-2 border-b border-stone-100">
+        <div class="w-8 h-8 rounded-full bg-amber-50 text-brand-accent flex items-center justify-center text-lg flex-shrink-0">📍</div>
+        <p class="text-xs text-stone-600 font-bold uppercase tracking-wider">Service Address (India)</p>
+    </div>
+
+    <!-- Specific Address -->
+    <div>
+        <label class="block text-[10px] text-stone-400 font-bold uppercase mb-1.5">Flat, House no., Building, Area</label>
+        <input type="text" id="address-line" placeholder="e.g. Flat 402, Sai Kripa Society, Kothrud" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm text-brand-dark focus:outline-none focus:border-brand-accent focus:bg-white transition-all">
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+        <!-- Postal Code / PIN -->
+        <div>
+            <label class="block text-[10px] text-stone-400 font-bold uppercase mb-1.5">PIN Code</label>
+            <input type="text" id="postal-code" maxlength="6" pattern="\d{6}" placeholder="e.g. 411038" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm text-brand-dark focus:outline-none focus:border-brand-accent focus:bg-white transition-all">
+        </div>
+        <!-- City -->
+        <div>
+            <label class="block text-[10px] text-stone-400 font-bold uppercase mb-1.5">City</label>
+            <input type="text" id="city" placeholder="e.g. Pune" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm text-brand-dark focus:outline-none focus:border-brand-accent focus:bg-white transition-all">
+        </div>
+    </div>
+
+    <!-- State Dropdown (All 28 States & 8 UTs) -->
+    <div>
+        <label class="block text-[10px] text-stone-400 font-bold uppercase mb-1.5">State / Union Territory</label>
+        <div class="relative">
+            <select id="state-select" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm text-brand-dark focus:outline-none focus:border-brand-accent focus:bg-white transition-all cursor-pointer appearance-none">
+                <option value="" disabled selected>Select your state...</option>
+                <optgroup label="States">
+                    <option value="Andhra Pradesh">Andhra Pradesh</option>
+                    <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                    <option value="Assam">Assam</option>
+                    <option value="Bihar">Bihar</option>
+                    <option value="Chhattisgarh">Chhattisgarh</option>
+                    <option value="Goa">Goa</option>
+                    <option value="Gujarat">Gujarat</option>
+                    <option value="Haryana">Haryana</option>
+                    <option value="Himachal Pradesh">Himachal Pradesh</option>
+                    <option value="Jharkhand">Jharkhand</option>
+                    <option value="Karnataka">Karnataka</option>
+                    <option value="Kerala">Kerala</option>
+                    <option value="Madhya Pradesh">Madhya Pradesh</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    <option value="Manipur">Manipur</option>
+                    <option value="Meghalaya">Meghalaya</option>
+                    <option value="Mizoram">Mizoram</option>
+                    <option value="Nagaland">Nagaland</option>
+                    <option value="Odisha">Odisha</option>
+                    <option value="Punjab">Punjab</option>
+                    <option value="Rajasthan">Rajasthan</option>
+                    <option value="Sikkim">Sikkim</option>
+                    <option value="Tamil Nadu">Tamil Nadu</option>
+                    <option value="Telangana">Telangana</option>
+                    <option value="Tripura">Tripura</option>
+                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                    <option value="Uttarakhand">Uttarakhand</option>
+                    <option value="West Bengal">West Bengal</option>
+                </optgroup>
+                <optgroup label="Union Territories">
+                    <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                    <option value="Chandigarh">Chandigarh</option>
+                    <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra & Nagar Haveli and Daman & Diu</option>
+                    <option value="Delhi">Delhi</option>
+                    <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                    <option value="Ladakh">Ladakh</option>
+                    <option value="Lakshadweep">Lakshadweep</option>
+                    <option value="Puducherry">Puducherry</option>
+                </optgroup>
+            </select>
+            <!-- Custom Dropdown Arrow -->
+            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400">
+                <i class="ph ph-caret-down"></i>
             </div>
+        </div>
+    </div>
+</div>
 
             <!-- Three Main Core Service Options -->
             <div class="space-y-2.5">
